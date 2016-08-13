@@ -1,0 +1,135 @@
+<html>
+<head>
+	<title></title>
+	<?php 
+
+include_once 'core/database/connect.php';
+$rpcode=$_GET["rp"];
+
+	$getInvoice =$db->query("SELECT * FROM posted_orders_table WHERE receipt_code='$rpcode' GROUP BY receipt_code LIMIT 1");
+	while ($row=$getInvoice->fetch_array()) {
+		$receipt_code = $row['receipt_code'];
+		$customer_no = $row['customer_no'];
+		 $customer = $row['customer_name'];
+		$customer_add = $row['customer_address'];
+		$customer_add2  = $row['customer_address2'];
+		$paymentTerms  = $row['paymentTermCode'];
+		$dueDate  = $row['dueDate'];
+		$extDocNo= $row['externalDocNo'];
+		$vatRegNo=$row['vatRegNo'];
+		$salesInvo=$row['salesinvno'];
+		$userid=$row['posted_by'];
+		
+	}
+?>
+<style type="text/css" media="print">
+   <!--
+
+    @page { size : portrait; margin:0;padding:0; }
+   @page rotated { size : landscape }
+   table { page : rotated }
+   -->
+</style>
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body onload="myFunction('div1')">
+	<div class="container">
+		<div class="row" >
+			<div class="col-md-12" id="div1">
+				<div align="center" class="page-header" >
+					<h1><strong>Company Name</strong><br /><small>Official Receipt</small></h1> 			
+					<p>Receipt code: <?php echo $receipt_code;?> </p>
+
+					
+						<div class="col-xs-6"> 
+							<p class="text-left"><label><strong>Reserved>>></strong></label></p>
+							<p class="text-left"><label >Customer Name: </label> <?php echo $customer ;?></p>
+							<p class="text-left"><label><strong>Reserved>>></strong></label></p>
+							<p class="text-left"><label >VatRegNo: </label> <?php echo $vatRegNo ;?></p>
+							<p class="text-left"><label>External Document No : <?php echo $extDocNo; ?></label></p>
+						</div>
+						<div class="col-xs-6">
+
+							<p class="text-right"><label>SalesinvNo: <?php echo $salesInvo; ?></label></p>
+							<p class="text-right"><label>Date: <?php echo date("d-m-Y");?></label></p>
+							<p class="text-right"><label><strong>Payment Term : <?php echo $paymentTerms;?> Days </strong></label></p>
+							<p class="text-right"><label><strong>Reserved>>></strong></label></p>
+							<p class="text-right"> <label><strong>UserID:<?php echo $userid; ?></strong></label></p>
+						</div>
+					
+					</div>
+							<table class="table table-bordered">
+								<tr>
+									<td>Product ID</td>
+									<td>Quantity</td>
+									<td>Product Description</td>
+									<td>Unit Price</td>
+									<td>Amount</td>
+								</tr>
+								<?php
+							  		$getProduct = $db->query("SELECT * FROM posted_orders_table WHERE receipt_code='$receipt_code'");
+									while($row=$getProduct->fetch_array()){
+
+							  			echo "<tr>
+								  		<td>".$row['item_id']."</td>
+								  		<td class='text-right'> ".number_format($row['quantity'])."</td>
+								  		<td>".$row['item_description']."</td>
+								  		<td class='text-right'>Php ".number_format($row['price'])."</td>
+								  		<td class='text-right'>".number_format($row['total'])."</td>
+								  		</tr>
+								  		";
+
+							  		}
+							  		?>
+							  		<tr>
+							  			<td colspan="4" align="right"><strong>Amount without VAT:</strong></td>
+							  			<td width="13%" class='text-right'><?php $countRetail = $db->query("SELECT sum(total) FROM posted_orders_table WHERE receipt_code='$receipt_code'"); 
+							  									while($row=$countRetail->fetch_array()){
+							  										$woutVat=number_format($row['sum(total)']);
+							  										echo $woutVat;
+							  									}
+							  								
+							  								?></td>
+							  		</tr>
+							  		<tr>
+							  			<td colspan="4" align="right"><strong>VAT AMOUNT:</strong></td>
+							  			<td width="13%" class='text-right'><?php $countRetail = $db->query("SELECT sum(total) FROM posted_orders_table WHERE receipt_code='$receipt_code'"); 
+							  									while($row=$countRetail->fetch_array()){
+							  										$vat=number_format($row['sum(total)']*0.12);
+							  										echo $vat;
+							  									}
+							  								
+							  								?></td>
+							  		</tr>
+							  		<tr>
+							  			<td colspan="4" align="right"><strong>Total AMOUNT:</strong></td>
+							  			<td width="13%" class='text-right'>
+							  				<?php  $countRetail = $db->query("SELECT sum(total) FROM posted_orders_table WHERE receipt_code='$receipt_code'"); 
+							  									while($row=$countRetail->fetch_array()){
+							  										$total=$row['sum(total)'];
+							  										$total+=$row['sum(total)']*0.12;
+							  										echo number_format($total);
+							  									}
+							  				?></td>
+							  		</tr>
+							</table>
+					
+				</div>
+		</div>
+
+	</div>
+
+	<script src='js/jquery-2.1.3.min.js'></script>
+		<script type="text/javascript">
+		function myFunction(el) {
+    var restorepage = document.body.innerHTML;
+	var printcontent = document.getElementById(el).innerHTML;
+	document.body.innerHTML = printcontent;
+	window.print();
+	document.body.innerHTML = restorepage;
+	window.location.href = 'posted_order_list.php';
+}
+</script>
+<script src="js/bootstrap.min.js"></script>	
+</body>
+</html>
